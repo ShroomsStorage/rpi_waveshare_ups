@@ -254,7 +254,8 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
                 target=self._async_task_detect()
             )
             return self.async_show_progress(
-                step_id="user", progress_action="task_detect"
+                progress_action="task_detect",
+                progress_task=self.task_detect,
             )
 
         _LOGGER.debug(self._logger.format("running detection task"))
