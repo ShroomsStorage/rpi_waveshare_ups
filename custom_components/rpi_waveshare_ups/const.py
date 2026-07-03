@@ -16,8 +16,11 @@ CONF_TITLE_PLACEHOLDERS: str = "title_placeholders"
 CONF_UPDATE_INTERVAL: str = "update_interval"
 
 DEF_HAT_TYPE: str = "a"
+DEF_HAT_E_ADDRESS: int = 0x2D
 DEF_MIN_CHARGING: float = -100
 DEF_UPDATE_INTERVAL: int = 10
+
+HAT_TYPE_E: str = "e"
 
 DOMAIN: str = "rpi_waveshare_ups"
 

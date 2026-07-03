@@ -21,10 +21,12 @@ from .const import (
     CONF_MIN_CHARGING,
     CONF_TITLE_PLACEHOLDERS,
     CONF_UPDATE_INTERVAL,
+    DEF_HAT_E_ADDRESS,
     DEF_HAT_TYPE,
     DEF_MIN_CHARGING,
     DEF_UPDATE_INTERVAL,
     DOMAIN,
+    HAT_TYPE_E,
 )
 from .logger import Logger
 
@@ -80,6 +82,11 @@ async def _async_build_schema_with_user_input(
         )
     elif step == STEP_SELECT:
         addresses: list[str] = list(map(hex, kwargs.get("addresses", [])))
+        default_address = (
+            hex(DEF_HAT_E_ADDRESS)
+            if DEF_HAT_E_ADDRESS in kwargs.get("addresses", [])
+            else addresses[0]
+        )
         schema = vol.Schema(
             {
                 vol.Required(
@@ -90,7 +97,7 @@ async def _async_build_schema_with_user_input(
                 ): selector.TextSelector(),
                 vol.Required(
                     CONF_HAT_ADDRESS,
-                    default=user_input.get(CONF_HAT_ADDRESS, addresses[0]),
+                    default=user_input.get(CONF_HAT_ADDRESS, default_address),
                 ): selector.SelectSelector(
                     config=selector.SelectSelectorConfig(
                         mode=selector.SelectSelectorMode.DROPDOWN,
@@ -109,6 +116,7 @@ async def _async_build_schema_with_user_input(
                             "a",
                             "b",
                             "d",
+                            HAT_TYPE_E,
                         ],
                         translation_key="hat_type",
                     )

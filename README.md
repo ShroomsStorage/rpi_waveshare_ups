@@ -16,7 +16,7 @@ the Pi down in the event of an extended power outage.
 # Description
 
 This integration can be used to get information over i2c for the
-Waveshare UPS for the Raspberry Pi.
+Waveshare UPS for the Raspberry Pi. HAT models A, B, D, and E are supported.
 The integration assumes that you have followed the instructions for
 enabling i2c on your Raspberry Pi. These instructions will differ
 depending on how you are running Home Assistant.
@@ -45,6 +45,11 @@ Alternatively you can use the button below.
 | Name | Enabled by default | Additional Information | Comments |
 |---|:---:|---|---|
 | Battery State | ✔️ | Whether the battery is charging or not | This is based on the current being >= the minimum charging value |
+| Charging | ✔️ | HAT E only | Charging status from register `0x02` |
+| Fast Charging | ✔️ | HAT E only | Fast charge status from register `0x02` |
+| VBUS Powered | ✔️ | HAT E only | External VBUS present from register `0x02` |
+| BQ4050 Communication |  | HAT E only | Diagnostic communication flag from register `0x03` |
+| IP2368 Communication |  | HAT E only | Diagnostic communication flag from register `0x03` |
 
 ## Sensors
 
@@ -56,6 +61,25 @@ Alternatively you can use the button below.
 | Power | ✔️ |  |  |
 | PSU Voltage | ✔️ | Load Voltage + Shunt Voltage |  |
 | Shunt Voltage | ✔️ | Voltage between V+ and V- across the shunt |  |
+| Charge State | ✔️ | HAT E only | Standby, trickle, constant current, constant voltage, pending, full, timeout |
+| VBUS Voltage | ✔️ | HAT E only | External bus voltage |
+| VBUS Current | ✔️ | HAT E only | External bus current |
+| VBUS Power | ✔️ | HAT E only | External bus power |
+| Battery Voltage | ✔️ | HAT E only | Battery pack voltage |
+| Battery Current | ✔️ | HAT E only | Positive while charging, negative while discharging |
+| Remaining Capacity | ✔️ | HAT E only | Remaining capacity in mAh |
+| Runtime To Empty | ✔️ | HAT E only | Runtime in minutes while discharging |
+| Time To Full | ✔️ | HAT E only | Time in minutes while charging |
+| Cell 1 Voltage | ✔️ | HAT E only | Cell voltage |
+| Cell 2 Voltage | ✔️ | HAT E only | Cell voltage |
+| Cell 3 Voltage | ✔️ | HAT E only | Cell voltage |
+| Cell 4 Voltage | ✔️ | HAT E only | Cell voltage |
+| Device ID |  | HAT E only | Diagnostic register `0x00` |
+| Control Register |  | HAT E only | Read-only diagnostic register `0x40` |
+| Configured I2C Address |  | HAT E only | Read-only diagnostic register `0x41` |
+| Watchdog Timeout |  | HAT E only | Read-only diagnostic register `0x42` |
+| Watchdog Startup Delay |  | HAT E only | Read-only diagnostic register `0x43` |
+| Software Revision |  | HAT E only | Read-only diagnostic register `0x50` |
 
 # Setup
 
@@ -76,6 +100,11 @@ need to pick the correct one to use.
 * __Version of the HAT__ - defaults to B. You should pick the version that you
 have.
 * __Update interval__ - defaults to 10s. Defines how often to query the UPS.
+
+The Waveshare UPS HAT (E) normally appears at I2C address `0x2d`. You can verify
+the address from the Home Assistant host with `i2cdetect -y 1` after I2C has been
+enabled. HAT E support is read-only; this integration does not write to shutdown,
+watchdog, or I2C address-change registers.
 
 On successful set up the following screen will be seen detailing the device.
 

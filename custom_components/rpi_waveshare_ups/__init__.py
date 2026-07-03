@@ -10,6 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
+    UpdateFailed,
 )
 
 from .const import (
@@ -20,8 +21,10 @@ from .const import (
     CONF_UPDATE_INTERVAL,
     DEF_UPDATE_INTERVAL,
     DOMAIN,
+    HAT_TYPE_E,
     PLATFORMS,
 )
+from .hat_e import HatE, HatEData, HatEUpdateError
 from .ina219.INA219_AB import INA219_AB
 from .ina219.INA219_D import INA219_D
 from .logger import Logger
@@ -94,6 +97,9 @@ class UPS:
         return self._shunt_voltage
 
 
+UPSData = UPS | HatEData
+
+
 class UPSEntity(CoordinatorEntity):
     """Representation of a UPS entity."""
 
@@ -107,6 +113,7 @@ class UPSEntity(CoordinatorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device information of the entity."""
+        hat_type = self._config_entry.options.get(CONF_HAT_TYPE, "").lower()
         return DeviceInfo(
             identifiers={
                 (
@@ -116,7 +123,7 @@ class UPSEntity(CoordinatorEntity):
                 )
             },
             manufacturer="Waveshare",
-            model=f"Model {self._config_entry.options.get(CONF_HAT_TYPE, '').upper()}",
+            model="UPS HAT (E)" if hat_type == HAT_TYPE_E else f"Model {hat_type.upper()}",
             name=self._config_entry.title,
         )
 
@@ -138,11 +145,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # endregion
 
     # region #-- setup the coordinator --#
-    async def _async_data_coordinator_update() -> UPS:
+    async def _async_data_coordinator_update() -> UPSData:
+        hat_type = config_entry.options.get(CONF_HAT_TYPE, "A").lower()
+        if hat_type == HAT_TYPE_E:
+            hat_e = HatE(
+                addr=int(config_entry.options.get(CONF_HAT_ADDRESS), 0),
+                i2c_bus=config_entry.options.get(CONF_HAT_BUS),
+            )
+            try:
+                return hat_e.read_data()
+            except HatEUpdateError as err:
+                raise UpdateFailed(str(err)) from err
+            finally:
+                hat_e.bus.close()
+
         with UPS(
             i2c_bus=config_entry.options.get(CONF_HAT_BUS),
             i2c_address=int(config_entry.options.get(CONF_HAT_ADDRESS), 0),
-            is_model_d=(config_entry.options.get(CONF_HAT_TYPE, 'A').upper() == 'D'),
+            is_model_d=(hat_type.upper() == "D"),
         ) as ups_data:
             pass
 
